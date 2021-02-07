@@ -1,0 +1,111 @@
+﻿<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8" />
+    <title>Demo Fund Data Graph</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@2.9.4/dist/Chart.min.js"></script> 
+    
+</head>
+<body>
+
+    <canvas id="scatterChart" width="400" height="400"></canvas>
+    <script>
+       
+
+        const xData = [];
+        const yData = [];
+        const xyData = [];
+        const fundName = [];
+        const fundPersonName = [];
+        const fundWebsite = [];
+        
+        getData();
+        chartIt();
+
+        async function getData() {
+            const response = await fetch('SampleData1.csv');
+            const data = await response.text();
+
+            const table = data.split('\n').slice(1);
+            table.forEach(row => {
+                const columns = row.split(',');
+                const name = columns[0];
+                fundName.push(name);
+                const cost = columns[1];
+                xData.push(cost);
+                const performance = columns[2];
+                yData.push(performance);
+                const managerName = columns[5];
+                fundPersonName.push(managerName);
+                const website = columns[6];
+                fundWebsite.push(website);
+            })
+            
+        }
+  
+        async function chartIt() {
+            await getData();
+            const ctx = document.getElementById('scatterChart').getContext('2d');
+
+            
+
+            for (var i = 0; i < Object.keys(xData).length/2; i++) {
+                xyData.push({x: xData[i],y: yData[i]});
+            }
+
+            var gradientStroke = ctx.createLinearGradient(0, 550, 100, 0);
+            gradientStroke.addColorStop(0, '#ff5757');
+            gradientStroke.addColorStop(0.01, '#ff922b');
+            gradientStroke.addColorStop(1, '#7aff73');
+
+            const scatterChart = new Chart(ctx, {
+                type: 'scatter',
+                data: {
+                    labels: fundName,
+                    datasets: [{
+                        label: 'Fund Cost vs Performance',
+                        borderColor: gradientStroke,
+                        pointBorderColor: gradientStroke,
+                        pointBackgroundColor: gradientStroke,
+                        pointHoverBackgroundColor: gradientStroke,
+                        pointHoverBorderColor: gradientStroke,
+                        pointBorderWidth: 10,
+                        pointHoverRadius: 10,
+                        pointHoverBorderWidth: 1,
+                        pointRadius: 3,
+                        hitRadius: 8,
+                        data: xyData
+                    }]
+                },
+                options: {
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem) {
+                                return fundName[tooltipItem.index] + ': ' + fundPersonName[tooltipItem.index] + '  (' + tooltipItem.xLabel + ', ' + tooltipItem.yLabel + ')';
+                            }
+                        }
+                    },
+                    scales: {
+                        xAxes: [{
+                            type: 'linear',
+                            position: 'bottom',
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Cost',
+                            }
+                        }],
+                        yAxes: [{
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Performance',
+                            }
+                        }]
+                    }
+                }
+            });
+        }
+
+    </script>
+</body>
+</html>
